@@ -9,60 +9,253 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
-        body { background: linear-gradient(135deg, #0c4a6e 0%, #075985 50%, #0c4a6e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .card { background: #fff; border-radius: 22px; box-shadow: 0 24px 64px rgba(0,0,0,0.18); width: 420px; max-width: 92vw; overflow: hidden; }
-        .head { padding: 36px 32px 28px; text-align: center; background: linear-gradient(180deg, #f0f9ff, #fff); border-bottom: 1px solid #e0f2fe; }
-        .logo { width: 64px; height: 64px; border-radius: 18px; background: linear-gradient(135deg, #0284c7, #0369a1); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; box-shadow: 0 10px 28px rgba(2,132,199,0.3); }
-        .logo i { color: #fff; font-size: 26px; }
-        h1 { font-size: 20px; font-weight: 800; color: #0f172a; }
-        .sub { font-size: 12.5px; color: #64748b; margin-top: 5px; }
-        form { padding: 28px 32px 32px; }
-        .field { margin-bottom: 14px; }
-        label { display: block; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
-        input { width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13.5px; outline: none; transition: border-color 0.15s; }
-        input:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,0.1); }
-        button { width: 100%; padding: 12px; background: #0284c7; color: #fff; border: none; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background 0.15s; }
-        button:hover { background: #0369a1; }
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
-        .err { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 9px; font-size: 12px; margin-bottom: 14px; display: none; }
-        .err.show { display: block; }
+        body { margin: 0; min-height: 100vh; background: #f4f6fa; }
+
+        .layout { display: grid; grid-template-columns: 1fr; min-height: 100vh; }
+        @media (min-width: 960px) { .layout { grid-template-columns: 1.05fr 1fr; } }
+
+        /* ── Sol panel (brand) ── */
+        .brand {
+            display: none;
+            position: relative;
+            color: #fff;
+            background: radial-gradient(1200px 600px at -10% -10%, #0ea5e9 0%, transparent 60%),
+                        radial-gradient(900px 600px at 110% 110%, #38bdf8 0%, transparent 55%),
+                        linear-gradient(135deg, #0c4a6e 0%, #082f49 60%, #0c4a6e 100%);
+            overflow: hidden;
+        }
+        @media (min-width: 960px) { .brand { display: flex; flex-direction: column; justify-content: space-between; padding: 56px 60px; } }
+        .brand::before {
+            content: ""; position: absolute; inset: 0;
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06) 0, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0, transparent 40%);
+            pointer-events: none;
+        }
+        .brand-top { position: relative; display: flex; align-items: center; gap: 14px; }
+        .brand-logo {
+            width: 52px; height: 52px; border-radius: 14px;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 12px 32px rgba(2,132,199,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+        .brand-logo i { color: #fff; font-size: 22px; }
+        .brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+
+        .brand-mid { position: relative; max-width: 480px; }
+        .brand-headline { font-size: 38px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+        .brand-headline span { color: #7dd3fc; }
+        .brand-sub { margin-top: 18px; font-size: 15px; line-height: 1.65; color: #cbd5e1; }
+
+        .brand-features { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 480px; }
+        .feat {
+            display: flex; gap: 12px; align-items: flex-start;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 14px;
+            backdrop-filter: blur(6px);
+        }
+        .feat i { color: #7dd3fc; font-size: 16px; margin-top: 2px; }
+        .feat-t { font-size: 13.5px; font-weight: 700; }
+        .feat-d { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
+
+        .brand-foot { position: relative; font-size: 12px; color: #94a3b8; }
+
+        /* ── Sağ panel (form) ── */
+        .form-wrap { display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
+        .card { width: 100%; max-width: 420px; }
+
+        .mobile-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+        @media (min-width: 960px) { .mobile-logo { display: none; } }
+        .mobile-logo .ml-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 22px rgba(2,132,199,0.35);
+        }
+        .mobile-logo .ml-icon i { color: #fff; font-size: 18px; }
+        .mobile-logo .ml-name { font-size: 17px; font-weight: 800; color: #0f172a; }
+
+        h1 { font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.01em; margin: 0; }
+        .sub { font-size: 14px; color: #64748b; margin-top: 6px; }
+
+        form { margin-top: 28px; }
+        .field { margin-bottom: 16px; }
+        label {
+            display: block; font-size: 12px; font-weight: 600; color: #334155;
+            margin-bottom: 6px; letter-spacing: 0.01em;
+        }
+        .input {
+            position: relative; display: flex; align-items: center;
+            background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input:focus-within { border-color: #0284c7; box-shadow: 0 0 0 4px rgba(2,132,199,0.12); }
+        .input i.lead { color: #94a3b8; padding-left: 14px; font-size: 14px; }
+        .input input {
+            width: 100%; padding: 12px 14px; background: transparent; border: 0; outline: none;
+            font-size: 14px; color: #0f172a;
+        }
+        .input input::placeholder { color: #94a3b8; }
+        .toggle-pw {
+            background: transparent; border: 0; padding: 0 14px; cursor: pointer;
+            color: #94a3b8; font-size: 14px;
+        }
+        .toggle-pw:hover { color: #0284c7; }
+
+        .row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 4px 0 18px;
+        }
+        .remember { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; cursor: pointer; user-select: none; }
+        .remember input { accent-color: #0284c7; width: 14px; height: 14px; }
+
+        button.submit {
+            width: 100%; padding: 12px 14px;
+            background: linear-gradient(180deg, #0284c7, #0369a1);
+            color: #fff; border: 0; border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 10px 24px rgba(2,132,199,0.28);
+            transition: transform 0.04s, box-shadow 0.15s, opacity 0.15s;
+        }
+        button.submit:hover { box-shadow: 0 14px 30px rgba(2,132,199,0.36); }
+        button.submit:active { transform: translateY(1px); }
+        button.submit:disabled { opacity: 0.65; cursor: not-allowed; box-shadow: none; }
+
+        .err {
+            background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+            padding: 10px 12px; border-radius: 9px; font-size: 12.5px;
+            margin-bottom: 14px; display: none;
+        }
+        .err.show { display: flex; align-items: center; gap: 8px; }
+
+        .foot { margin-top: 22px; text-align: center; font-size: 12px; color: #94a3b8; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="head">
-            <div class="logo"><i class="fas fa-truck-fast"></i></div>
-            <h1>Kuzeyden Lojistik</h1>
-            <div class="sub">Yönetim paneline giriş</div>
-        </div>
-        <form id="loginForm">
-            <div class="err" id="err"></div>
-            <div class="field">
-                <label>E-posta</label>
-                <input type="email" name="email" required autocomplete="email" placeholder="ornek@kuzeydenlojistik.com">
+    <div class="layout">
+        <!-- Sol: Brand panel -->
+        <aside class="brand">
+            <div class="brand-top">
+                <div class="brand-logo"><i class="fas fa-truck-fast"></i></div>
+                <div class="brand-name">Kuzeyden Lojistik</div>
             </div>
-            <div class="field">
-                <label>Şifre</label>
-                <input type="password" name="password" required autocomplete="current-password" placeholder="••••••••">
+
+            <div class="brand-mid">
+                <div class="brand-headline">Lojistik operasyonlarınız <span>tek panelden</span> yönetilsin.</div>
+                <div class="brand-sub">Sevkiyat, araç, şoför ve müşteri kayıtlarını tek bir yerden takip edin. Anlık görünürlük, daha hızlı karar.</div>
             </div>
-            <button type="submit" id="btn">Giriş Yap</button>
-        </form>
+
+            <div class="brand-features">
+                <div class="feat">
+                    <i class="fas fa-route"></i>
+                    <div>
+                        <div class="feat-t">Sevkiyat takibi</div>
+                        <div class="feat-d">Plandan teslime tüm aşamalar</div>
+                    </div>
+                </div>
+                <div class="feat">
+                    <i class="fas fa-truck"></i>
+                    <div>
+                        <div class="feat-t">Filo yönetimi</div>
+                        <div class="feat-d">Araç ve şoför planlaması</div>
+                    </div>
+                </div>
+                <div class="feat">
+                    <i class="fas fa-users"></i>
+                    <div>
+                        <div class="feat-t">Müşteri kartları</div>
+                        <div class="feat-d">Tek tıkla geçmiş işler</div>
+                    </div>
+                </div>
+                <div class="feat">
+                    <i class="fas fa-chart-line"></i>
+                    <div>
+                        <div class="feat-t">Operasyonel rapor</div>
+                        <div class="feat-d">Gerçek zamanlı görünüm</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-foot">© <%= new Date().getFullYear() %> Kuzeyden Lojistik · Tüm hakları saklıdır</div>
+        </aside>
+
+        <!-- Sağ: Form -->
+        <main class="form-wrap">
+            <div class="card">
+                <div class="mobile-logo">
+                    <div class="ml-icon"><i class="fas fa-truck-fast"></i></div>
+                    <div class="ml-name">Kuzeyden Lojistik</div>
+                </div>
+
+                <h1>Hoş geldiniz</h1>
+                <div class="sub">Devam etmek için hesabınıza giriş yapın</div>
+
+                <form id="loginForm" autocomplete="on">
+                    <div class="err" id="err">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <span id="errText"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="email">E-posta</label>
+                        <div class="input">
+                            <i class="fas fa-envelope lead"></i>
+                            <input id="email" type="email" name="email" required autocomplete="email" placeholder="ornek@kuzeydenlojistik.com">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="password">Şifre</label>
+                        <div class="input">
+                            <i class="fas fa-lock lead"></i>
+                            <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="••••••••">
+                            <button type="button" class="toggle-pw" id="togglePw" aria-label="Şifreyi göster/gizle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="remember">
+                            <input type="checkbox" id="remember">
+                            Beni hatırla
+                        </label>
+                    </div>
+
+                    <button type="submit" class="submit" id="btn">Giriş Yap</button>
+                </form>
+
+                <div class="foot">Bir sorun mu var? IT ekibinizle iletişime geçin.</div>
+            </div>
+        </main>
     </div>
+
     <script>
+        const togglePw = document.getElementById('togglePw');
+        const pw = document.getElementById('password');
+        togglePw.addEventListener('click', () => {
+            const isPw = pw.type === 'password';
+            pw.type = isPw ? 'text' : 'password';
+            togglePw.querySelector('i').className = isPw ? 'fas fa-eye-slash' : 'fas fa-eye';
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const data = Object.fromEntries(new FormData(e.target));
+            delete data.remember; // backend bunu kullanmıyor
             const btn = document.getElementById('btn');
             const err = document.getElementById('err');
+            const errText = document.getElementById('errText');
             err.classList.remove('show');
             btn.disabled = true; btn.textContent = 'Giriş yapılıyor…';
             try {
                 const res = await fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 const r = await res.json();
                 if (r.success) location.href = '/';
-                else { err.textContent = r.message || 'Giriş başarısız'; err.classList.add('show'); }
+                else { errText.textContent = r.message || 'Giriş başarısız'; err.classList.add('show'); }
             } catch {
-                err.textContent = 'Bağlantı hatası'; err.classList.add('show');
+                errText.textContent = 'Bağlantı hatası'; err.classList.add('show');
             }
             btn.disabled = false; btn.textContent = 'Giriş Yap';
         });
