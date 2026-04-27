@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>404 — Bulunamadı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>* { font-family: 'Inter', sans-serif; } body { background: #f8fafc; }</style>
+</head>
+<body class="flex min-h-screen overflow-hidden">
+<%- include('sidebar', { currentPage: currentPage || '/' }) %>
+<main class="flex-1 ml-60 flex items-center justify-center">
+    <div style="text-align: center;">
+        <div style="font-size: 80px; font-weight: 900; color: #cbd5e1; line-height: 1;">404</div>
+        <div style="font-size: 16px; font-weight: 700; color: #475569; margin-top: 12px;">Sayfa bulunamadı</div>
+        <a href="/" style="display: inline-block; margin-top: 18px; padding: 10px 20px; background: #0284c7; color: #fff; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none;">Anasayfaya Dön</a>
+    </div>
+</main>
+</body>
+</html>

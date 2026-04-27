@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Araçlar — Kuzeyden Lojistik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>* { font-family: 'Inter', sans-serif; } body { background: #f8fafc; }</style>
+</head>
+<body class="flex min-h-screen overflow-hidden">
+
+<%- include('../sidebar', { currentPage: '/tms/araclar' }) %>
+
+<main class="flex-1 ml-60 overflow-y-auto" style="max-height:100vh;">
+    <div style="padding: 32px 40px; background: #fff; border-bottom: 1px solid #e2e8f0;">
+        <h1 style="font-size: 24px; font-weight: 800; color: #0f172a;">Araç Filosu</h1>
+        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">Toplam <%= araclar.length %> araç</p>
+    </div>
+    <div style="padding: 28px 40px;">
+        <% if (araclar.length === 0) { %>
+            <div style="background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 48px; text-align: center;">
+                <i class="fas fa-truck" style="font-size: 32px; color: #cbd5e1;"></i>
+                <div style="font-size: 14px; font-weight: 700; color: #475569; margin-top: 12px;">Henüz araç tanımlı değil</div>
+            </div>
+        <% } else { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+                <% araclar.forEach(a => { %>
+                <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                    <div style="font-family: 'SF Mono', Monaco, monospace; font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;"><%= a.plaka %></div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;"><%= a.marka || '' %> <%= a.model || '' %></div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+                        <span style="padding: 3px 9px; border-radius: 6px; background: <%= a.durum === 'Müsait' ? '#ecfdf5' : '#fef3c7' %>; color: <%= a.durum === 'Müsait' ? '#047857' : '#a16207' %>; font-size: 10.5px; font-weight: 700;"><%= a.durum %></span>
+                        <% if (a.sofor_ad) { %><span style="font-size: 11px; color: #64748b;"><i class="fas fa-id-card" style="font-size: 9px;"></i> <%= a.sofor_ad %></span><% } %>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+        <% } %>
+    </div>
+</main>
+</body>
+</html>

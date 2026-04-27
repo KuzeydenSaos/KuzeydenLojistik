@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Müşteriler — Kuzeyden Lojistik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>* { font-family: 'Inter', sans-serif; } body { background: #f8fafc; }</style>
+</head>
+<body class="flex min-h-screen overflow-hidden">
+
+<%- include('../sidebar', { currentPage: '/tms/musteriler' }) %>
+
+<main class="flex-1 ml-60 overflow-y-auto" style="max-height:100vh;">
+    <div style="padding: 32px 40px; background: #fff; border-bottom: 1px solid #e2e8f0;">
+        <h1 style="font-size: 24px; font-weight: 800; color: #0f172a;">Müşteriler</h1>
+        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">Toplam <%= musteriler.length %> müşteri</p>
+    </div>
+    <div style="padding: 28px 40px;">
+        <% if (musteriler.length === 0) { %>
+            <div style="background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 48px; text-align: center;">
+                <i class="fas fa-handshake" style="font-size: 32px; color: #cbd5e1;"></i>
+                <div style="font-size: 14px; font-weight: 700; color: #475569; margin-top: 12px;">Henüz müşteri tanımlı değil</div>
+            </div>
+        <% } else { %>
+            <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">Ad</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">Vergi No</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">Telefon</th>
+                            <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">E-posta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% musteriler.forEach(m => { %>
+                        <tr style="border-top: 1px solid #f1f5f9;">
+                            <td style="padding: 12px 16px; font-size: 13px; font-weight: 700; color: #0f172a;"><%= m.ad %></td>
+                            <td style="padding: 12px 16px; font-size: 12px; color: #475569; font-family: 'SF Mono', Monaco, monospace;"><%= m.vergi_no || '—' %></td>
+                            <td style="padding: 12px 16px; font-size: 12px; color: #475569;"><%= m.telefon || '—' %></td>
+                            <td style="padding: 12px 16px; font-size: 12px; color: #475569;"><%= m.email || '—' %></td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
+</main>
+</body>
+</html>

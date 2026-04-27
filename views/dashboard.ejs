@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anasayfa — Kuzeyden Lojistik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; }
+    </style>
+</head>
+<body class="flex min-h-screen overflow-hidden">
+
+<%- include('sidebar', { currentPage: '/' }) %>
+
+<main class="flex-1 ml-60 overflow-y-auto" style="max-height:100vh;">
+    <div style="padding: 36px 40px; background: #fff; border-bottom: 1px solid #e2e8f0;">
+        <h1 style="font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+            Hoş geldin, <%= user ? user.name.split(' ')[0] : '' %> 👋
+        </h1>
+        <p style="font-size: 13px; color: #64748b; margin-top: 6px;">Bugün operasyona genel bir bakış.</p>
+    </div>
+
+    <div style="padding: 28px 40px 40px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            <a href="/tms" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
+                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #0284c7, #0369a1); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+                    <i class="fas fa-chart-line" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">TMS Dashboard</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Sevkiyat, araç ve şoför özeti</div>
+            </a>
+
+            <a href="/tms/sevkiyatlar" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
+                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+                    <i class="fas fa-route" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Sevkiyatlar</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Aktif ve geçmiş seferler</div>
+            </a>
+
+            <a href="/tms/araclar" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
+                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+                    <i class="fas fa-truck" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Araç Filosu</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Plaka, kapasite, durum</div>
+            </a>
+
+            <a href="/kullanicilar" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
+                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+                    <i class="fas fa-users" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Kullanıcılar</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Yönetim paneli</div>
+            </a>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>
