@@ -138,7 +138,36 @@ async function initDb() {
             );
         `);
 
-        // ── TMS: Sevkiyatlar ──
+        // ── TMS: Lokasyonlar (Depo / Şube / Müşteri lokasyonu / Diğer) ──
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS tms_lokasyon (
+                id              SERIAL PRIMARY KEY,
+                ad              VARCHAR(200) NOT NULL,
+                tip             VARCHAR(40)  DEFAULT 'Depo',
+                kod             VARCHAR(40)  UNIQUE,
+                adres           TEXT,
+                sehir           VARCHAR(80),
+                ilce            VARCHAR(80),
+                telefon         VARCHAR(40),
+                iletisim_kisi   VARCHAR(150),
+                aktif           BOOLEAN DEFAULT TRUE,
+                created_at      TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // ── TMS: Ürün Grupları ──
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS tms_urun_grubu (
+                id          SERIAL PRIMARY KEY,
+                ad          VARCHAR(150) NOT NULL,
+                kod         VARCHAR(40)  UNIQUE,
+                aciklama    TEXT,
+                aktif       BOOLEAN DEFAULT TRUE,
+                created_at  TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // ── TMS: Sevkiyatlar (ana kayıt) ──
         await client.query(`
             CREATE TABLE IF NOT EXISTS tms_sevkiyat (
                 id              SERIAL PRIMARY KEY,
@@ -151,10 +180,75 @@ async function initDb() {
                 yukleme_tarihi  DATE,
                 teslim_tarihi   DATE,
                 tutar           NUMERIC(12,2),
-                durum           VARCHAR(40) DEFAULT 'Planlandı',
+                durum           VARCHAR(40) DEFAULT 'Plan Hazırlanıyor',
                 aciklama        TEXT,
                 created_at      TIMESTAMP DEFAULT NOW(),
                 updated_at      TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // ── TMS: Sevkiyat — yeni alanlar (idempotent) ──
+        const sevkiyatExtraCols = [
+            ['urun_grubu_id',     'INTEGER REFERENCES tms_urun_grubu(id) ON DELETE SET NULL'],
+            ['sevkiyat_turu',     'VARCHAR(40)'],
+            ['sevkiyat_kanali',   'VARCHAR(40)'],
+            ['cikis_lokasyon_id', 'INTEGER REFERENCES tms_lokasyon(id) ON DELETE SET NULL'],
+            ['varis_lokasyon_id', 'INTEGER REFERENCES tms_lokasyon(id) ON DELETE SET NULL'],
+            ['planlamaci_id',     'INTEGER REFERENCES users(id) ON DELETE SET NULL'],
+            ['lojistik_op_id',    'INTEGER REFERENCES users(id) ON DELETE SET NULL'],
+            ['mal_kabul_id',      'INTEGER REFERENCES users(id) ON DELETE SET NULL'],
+            ['planlanan_tarih',   'DATE'],
+            ['cikis_tarihi',      'TIMESTAMP'],
+            ['varis_tarihi',      'TIMESTAMP'],
+            ['kapanis_tarihi',    'TIMESTAMP']
+        ];
+        for (const [name, type] of sevkiyatExtraCols) {
+            await client.query(`ALTER TABLE tms_sevkiyat ADD COLUMN IF NOT EXISTS ${name} ${type};`);
+        }
+
+        // ── TMS: Sevkiyat kalemleri (yüklenecek ürünler) ──
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS tms_sevkiyat_kalem (
+                id              SERIAL PRIMARY KEY,
+                sevkiyat_id     INTEGER NOT NULL REFERENCES tms_sevkiyat(id) ON DELETE CASCADE,
+                urun_kodu       VARCHAR(80),
+                urun_adi        VARCHAR(255) NOT NULL,
+                miktar          NUMERIC(12,3) NOT NULL DEFAULT 1,
+                birim           VARCHAR(20) DEFAULT 'adet',
+                aciklama        TEXT,
+                created_at      TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // ── TMS: Sevkiyat olayları (state geçişleri + log) ──
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS tms_sevkiyat_olay (
+                id              SERIAL PRIMARY KEY,
+                sevkiyat_id     INTEGER NOT NULL REFERENCES tms_sevkiyat(id) ON DELETE CASCADE,
+                olay_tipi       VARCHAR(60) NOT NULL,
+                onceki_durum    VARCHAR(40),
+                yeni_durum      VARCHAR(40),
+                kullanici_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                kullanici_ad    VARCHAR(150),
+                konum           VARCHAR(255),
+                aciklama        TEXT,
+                ts              TIMESTAMP DEFAULT NOW()
+            );
+        `);
+
+        // ── TMS: İrsaliye (yükleme / teslim) ──
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS tms_irsaliye (
+                id              SERIAL PRIMARY KEY,
+                sevkiyat_id     INTEGER NOT NULL REFERENCES tms_sevkiyat(id) ON DELETE CASCADE,
+                tip             VARCHAR(20) NOT NULL,
+                belge_no        VARCHAR(80),
+                tarih           DATE,
+                imzali          BOOLEAN DEFAULT FALSE,
+                belge_url       TEXT,
+                yukleyen_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                aciklama        TEXT,
+                created_at      TIMESTAMP DEFAULT NOW()
             );
         `);
 
@@ -175,7 +269,7 @@ async function initDb() {
         }
 
         // ── Varsayılan menü yetkileri ──
-        const menuKeys = ['/', '/tms', '/tms/sevkiyatlar', '/tms/araclar', '/tms/soforler', '/tms/musteriler', '/kullanicilar', '/yonetim', '/audit'];
+        const menuKeys = ['/', '/tms', '/tms/sevkiyatlar', '/tms/araclar', '/tms/soforler', '/tms/musteriler', '/tms/lokasyonlar', '/tms/urun-gruplari', '/tms/atama', '/kullanicilar', '/yonetim', '/audit'];
         for (const key of menuKeys) {
             for (const rol of ['Süper Admin', 'Admin']) {
                 await client.query(

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lokasyonlar — Kuzeyden Lojistik</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Modal */
+        .modal-bg { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; backdrop-filter: blur(4px); }
+        .modal-bg.show { display: flex; }
+        .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; box-shadow: var(--shadow-3); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-head { padding: 18px 22px; border-bottom: 1px solid var(--s-200); display: flex; align-items: center; justify-content: space-between; }
+        .modal-title { font-size: 16px; font-weight: 800; color: var(--s-900); }
+        .modal-x { width: 32px; height: 32px; border-radius: 8px; background: transparent; border: 0; color: var(--s-500); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .modal-x:hover { background: var(--s-100); color: var(--s-900); }
+        .modal-body { padding: 22px; overflow-y: auto; }
+        .modal-foot { padding: 14px 22px; border-top: 1px solid var(--s-200); display: flex; justify-content: flex-end; gap: 10px; background: var(--s-50); }
+        .frm { display: grid; gap: 14px; }
+        .frm .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .frm .row.r3 { grid-template-columns: 1fr 1fr 1fr; }
+        @media (max-width: 600px) { .frm .row, .frm .row.r3 { grid-template-columns: 1fr; } }
+        .lbl { font-size: 12px; font-weight: 700; color: var(--s-700); margin-bottom: 6px; display: block; }
+        .req { color: var(--rose-600); }
+        .inp, .sel, .ta { width: 100%; padding: 10px 12px; border: 1.5px solid var(--s-200); border-radius: 10px; font-size: 13px; color: var(--s-900); background: #fff; outline: none; font-family: inherit; transition: all var(--t); }
+        .inp:focus, .sel:focus, .ta:focus { border-color: var(--p-400); box-shadow: 0 0 0 4px rgba(59,130,246,0.12); }
+        .ta { min-height: 80px; resize: vertical; }
+        .err-msg { font-size: 12px; color: var(--rose-600); margin-top: 4px; display: none; }
+        .err-msg.show { display: block; }
+
+        /* Filtre/arama */
+        .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .search-w { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+        .search-w i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--s-400); font-size: 13px; }
+        .search-w input { width: 100%; height: 38px; padding: 0 14px 0 36px; border: 1px solid var(--s-200); border-radius: 10px; background: #fff; font-size: 13px; outline: none; transition: all var(--t); }
+        .search-w input:focus { border-color: var(--p-400); box-shadow: 0 0 0 4px rgba(59,130,246,0.12); }
+        .filter-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 0 12px; height: 38px; border-radius: 10px;
+            background: #fff; border: 1px solid var(--s-200);
+            font-size: 12.5px; font-weight: 700; color: var(--s-600);
+            cursor: pointer; transition: all var(--t);
+        }
+        .filter-pill:hover { border-color: var(--s-300); color: var(--s-900); }
+        .filter-pill.on { background: var(--p-600); border-color: var(--p-600); color: #fff; }
+
+        /* Aktiflik badge */
+        .pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+        .pill.on  { background: var(--emerald-50); color: var(--emerald-700); }
+        .pill.off { background: var(--s-100); color: var(--s-500); }
+        .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        /* Action buttons */
+        .actions { display: inline-flex; gap: 6px; }
+        .ico-btn { width: 32px; height: 32px; border-radius: 8px; background: transparent; border: 1px solid var(--s-200); color: var(--s-500); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; transition: all var(--t); }
+        .ico-btn:hover { color: var(--s-900); border-color: var(--s-300); background: #fff; }
+        .ico-btn.danger:hover { color: var(--rose-700); border-color: var(--rose-200); background: var(--rose-50); }
+    </style>
+</head>
+<body>
+
+<%- include('../sidebar', { currentPage: '/tms/lokasyonlar' }) %>
+
+<%
+    const initials = (user && user.name) ? user.name.split(' ').map(w => w.charAt(0).toUpperCase()).join('').slice(0, 2) : '?';
+%>
+
+<main class="app-main" id="appMain">
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="crumb">
+            <a href="/tms" style="color:var(--s-400); font-weight:600; font-size:16px;">TMS</a>
+            <span class="sep"><i class="fas fa-chevron-right"></i></span>
+            Lokasyonlar
+        </div>
+        <div class="topbar-spacer"></div>
+        <% if (izin && izin.ekle) { %>
+            <button class="btn primary" id="btnYeni"><i class="fas fa-plus"></i> Yeni Lokasyon</button>
+        <% } %>
+    </header>
+
+    <div class="page">
+
+        <div class="toolbar">
+            <div class="search-w">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="qInput" placeholder="Ad, kod, şehir ara…">
+            </div>
+            <div class="filter-pill on" data-tip="*"><i class="fas fa-list"></i> Tümü</div>
+            <% tipler.forEach(t => { %>
+                <div class="filter-pill" data-tip="<%= t %>"><%= t %></div>
+            <% }) %>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">Lokasyon Listesi <span style="color: var(--s-400); font-weight: 600; font-size: 13px;">(<%= lokasyonlar.length %>)</span></div>
+            </div>
+
+            <% if (lokasyonlar.length === 0) { %>
+                <div class="empty">
+                    <div class="icon"><i class="fas fa-map-location-dot"></i></div>
+                    <div class="t">Henüz lokasyon yok</div>
+                    <div class="d">Çıkış ve teslimat noktalarını burada tanımlarsın.</div>
+                    <% if (izin && izin.ekle) { %>
+                        <button class="btn primary" style="margin-top:14px;" onclick="document.getElementById('btnYeni').click()">
+                            <i class="fas fa-plus"></i> İlk Lokasyonu Ekle
+                        </button>
+                    <% } %>
+                </div>
+            <% } else { %>
+                <div style="overflow-x:auto;">
+                    <table class="tbl" id="tbl">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:22px;">Ad</th>
+                                <th>Tip</th>
+                                <th>Kod</th>
+                                <th>Şehir</th>
+                                <th>Telefon</th>
+                                <th>İletişim</th>
+                                <th>Durum</th>
+                                <th style="text-align:right; padding-right:22px;">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% lokasyonlar.forEach(l => { %>
+                                <tr data-row data-tip="<%= l.tip %>"
+                                    data-search="<%= ((l.ad || '') + ' ' + (l.kod || '') + ' ' + (l.sehir || '')).toLowerCase() %>"
+                                    data-json='<%= JSON.stringify(l).replace(/'/g, "&apos;") %>'>
+                                    <td style="font-weight:700; color: var(--s-900);"><%= l.ad %></td>
+                                    <td><span class="st <%= l.tip === 'Depo' ? 'sky' : (l.tip === 'Şube' ? 'emer' : (l.tip === 'Müşteri' ? 'amber' : 'slate')) %>"><%= l.tip %></span></td>
+                                    <td><%= l.kod || '—' %></td>
+                                    <td><%= l.sehir || '—' %></td>
+                                    <td><%= l.telefon || '—' %></td>
+                                    <td><%= l.iletisim_kisi || '—' %></td>
+                                    <td>
+                                        <% if (l.aktif) { %>
+                                            <span class="pill on"><span class="dot"></span> Aktif</span>
+                                        <% } else { %>
+                                            <span class="pill off"><span class="dot"></span> Pasif</span>
+                                        <% } %>
+                                    </td>
+                                    <td style="text-align:right; padding-right:22px;">
+                                        <div class="actions">
+                                            <% if (izin && izin.duzenle) { %>
+                                                <button class="ico-btn" title="Düzenle" onclick='openEdit(<%- JSON.stringify(l) %>)'><i class="fas fa-pen"></i></button>
+                                            <% } %>
+                                            <% if (izin && izin.sil) { %>
+                                                <button class="ico-btn danger" title="Sil" onclick="silLokasyon(<%= l.id %>, '<%= (l.ad || '').replace(/'/g, '\\\'') %>')"><i class="fas fa-trash"></i></button>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</main>
+
+<!-- Modal: Yeni / Düzenle -->
+<div class="modal-bg" id="modalBg">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-title" id="modalTitle">Yeni Lokasyon</div>
+            <button class="modal-x" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+        <form id="frm" class="frm" style="margin:0;">
+            <div class="modal-body">
+                <input type="hidden" id="fId">
+                <div>
+                    <label class="lbl">Ad <span class="req">*</span></label>
+                    <input type="text" class="inp" id="fAd" required placeholder="Örn. Ankara Ana Depo">
+                </div>
+                <div class="row">
+                    <div>
+                        <label class="lbl">Tip <span class="req">*</span></label>
+                        <select class="sel" id="fTip">
+                            <% tipler.forEach(t => { %>
+                                <option value="<%= t %>"><%= t %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="lbl">Kod</label>
+                        <input type="text" class="inp" id="fKod" placeholder="Örn. ANK-01">
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <label class="lbl">Şehir</label>
+                        <input type="text" class="inp" id="fSehir" placeholder="Ankara">
+                    </div>
+                    <div>
+                        <label class="lbl">İlçe</label>
+                        <input type="text" class="inp" id="fIlce" placeholder="Çankaya">
+                    </div>
+                </div>
+                <div>
+                    <label class="lbl">Adres</label>
+                    <textarea class="ta" id="fAdres" placeholder="Açık adres"></textarea>
+                </div>
+                <div class="row">
+                    <div>
+                        <label class="lbl">Telefon</label>
+                        <input type="text" class="inp" id="fTelefon" placeholder="0312…">
+                    </div>
+                    <div>
+                        <label class="lbl">İletişim Kişisi</label>
+                        <input type="text" class="inp" id="fIletisim" placeholder="Ad Soyad">
+                    </div>
+                </div>
+                <div id="aktifWrap" style="display:none;">
+                    <label class="lbl">Durum</label>
+                    <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:8px 12px; background: var(--s-50); border:1px solid var(--s-200); border-radius:10px;">
+                        <input type="checkbox" id="fAktif" checked> Aktif
+                    </label>
+                </div>
+                <div class="err-msg" id="errMsg"></div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn ghost" onclick="closeModal()">İptal</button>
+                <button type="submit" class="btn primary" id="btnSave">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const izin = <%- JSON.stringify(izin || {}) %>;
+
+    // Modal kontrolü
+    const modalBg = document.getElementById('modalBg');
+    const errMsg = document.getElementById('errMsg');
+    function openModal() { modalBg.classList.add('show'); errMsg.classList.remove('show'); }
+    function closeModal() { modalBg.classList.remove('show'); }
+    modalBg.addEventListener('click', e => { if (e.target === modalBg) closeModal(); });
+
+    function openYeni() {
+        document.getElementById('modalTitle').textContent = 'Yeni Lokasyon';
+        document.getElementById('fId').value = '';
+        document.getElementById('fAd').value = '';
+        document.getElementById('fTip').value = 'Depo';
+        document.getElementById('fKod').value = '';
+        document.getElementById('fSehir').value = '';
+        document.getElementById('fIlce').value = '';
+        document.getElementById('fAdres').value = '';
+        document.getElementById('fTelefon').value = '';
+        document.getElementById('fIletisim').value = '';
+        document.getElementById('fAktif').checked = true;
+        document.getElementById('aktifWrap').style.display = 'none';
+        openModal();
+        setTimeout(() => document.getElementById('fAd').focus(), 50);
+    }
+
+    function openEdit(l) {
+        document.getElementById('modalTitle').textContent = 'Lokasyonu Düzenle';
+        document.getElementById('fId').value = l.id;
+        document.getElementById('fAd').value = l.ad || '';
+        document.getElementById('fTip').value = l.tip || 'Depo';
+        document.getElementById('fKod').value = l.kod || '';
+        document.getElementById('fSehir').value = l.sehir || '';
+        document.getElementById('fIlce').value = l.ilce || '';
+        document.getElementById('fAdres').value = l.adres || '';
+        document.getElementById('fTelefon').value = l.telefon || '';
+        document.getElementById('fIletisim').value = l.iletisim_kisi || '';
+        document.getElementById('fAktif').checked = !!l.aktif;
+        document.getElementById('aktifWrap').style.display = 'block';
+        openModal();
+    }
+
+    document.getElementById('btnYeni')?.addEventListener('click', openYeni);
+
+    // Submit
+    document.getElementById('frm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errMsg.classList.remove('show');
+        const id = document.getElementById('fId').value;
+        const data = {
+            ad: document.getElementById('fAd').value.trim(),
+            tip: document.getElementById('fTip').value,
+            kod: document.getElementById('fKod').value.trim(),
+            sehir: document.getElementById('fSehir').value.trim(),
+            ilce: document.getElementById('fIlce').value.trim(),
+            adres: document.getElementById('fAdres').value.trim(),
+            telefon: document.getElementById('fTelefon').value.trim(),
+            iletisim_kisi: document.getElementById('fIletisim').value.trim(),
+            aktif: document.getElementById('fAktif').checked
+        };
+        if (!data.ad) { errMsg.textContent = 'Ad zorunlu.'; errMsg.classList.add('show'); return; }
+
+        const btn = document.getElementById('btnSave');
+        btn.disabled = true; btn.textContent = 'Kaydediliyor…';
+        try {
+            const url = id ? `/tms/lokasyonlar/${id}` : '/tms/lokasyonlar';
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const r = await res.json();
+            if (r.success) location.reload();
+            else { errMsg.textContent = r.message || 'Kaydedilemedi.'; errMsg.classList.add('show'); }
+        } catch {
+            errMsg.textContent = 'Bağlantı hatası.'; errMsg.classList.add('show');
+        }
+        btn.disabled = false; btn.textContent = 'Kaydet';
+    });
+
+    // Sil
+    async function silLokasyon(id, ad) {
+        if (!confirm(`"${ad}" lokasyonunu silmek istediğinden emin misin?`)) return;
+        try {
+            const res = await fetch(`/tms/lokasyonlar/${id}/sil`, { method: 'POST' });
+            const r = await res.json();
+            if (r.success) location.reload();
+            else alert(r.message || 'Silinemedi.');
+        } catch {
+            alert('Bağlantı hatası.');
+        }
+    }
+
+    // Arama + filtre
+    const qInput = document.getElementById('qInput');
+    const pills = document.querySelectorAll('.filter-pill');
+    let activeTip = '*';
+    let activeQ = '';
+    function applyFilter() {
+        document.querySelectorAll('[data-row]').forEach(tr => {
+            const t = tr.getAttribute('data-tip');
+            const s = tr.getAttribute('data-search');
+            const okTip = activeTip === '*' || t === activeTip;
+            const okQ = !activeQ || s.includes(activeQ);
+            tr.style.display = (okTip && okQ) ? '' : 'none';
+        });
+    }
+    qInput?.addEventListener('input', e => { activeQ = e.target.value.trim().toLowerCase(); applyFilter(); });
+    pills.forEach(p => p.addEventListener('click', () => {
+        pills.forEach(x => x.classList.remove('on'));
+        p.classList.add('on');
+        activeTip = p.getAttribute('data-tip');
+        applyFilter();
+    }));
+</script>
+
+</body>
+</html>
