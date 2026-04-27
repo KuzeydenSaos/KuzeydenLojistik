@@ -43,8 +43,40 @@ app.use(require('./routes/tms'));
 app.use(require('./routes/kullanicilar'));
 
 // Anasayfa — dashboard
-app.get('/', requireAuth, (req, res) => {
-    res.render('dashboard', { currentPage: '/' });
+app.get('/', requireAuth, async (req, res) => {
+    try {
+        const [sevkiyatlar, araclar, soforler, musteriler, sonSevkiyat] = await Promise.all([
+            pool.query('SELECT COUNT(*)::int AS n FROM tms_sevkiyat'),
+            pool.query('SELECT COUNT(*)::int AS n FROM tms_arac'),
+            pool.query('SELECT COUNT(*)::int AS n FROM tms_sofor'),
+            pool.query('SELECT COUNT(*)::int AS n FROM tms_musteri'),
+            pool.query(`
+                SELECT s.id, s.kod, s.durum, s.yukleme_tarihi, s.tutar,
+                       m.ad AS musteri_ad, a.plaka
+                FROM tms_sevkiyat s
+                LEFT JOIN tms_musteri m ON m.id = s.musteri_id
+                LEFT JOIN tms_arac    a ON a.id = s.arac_id
+                ORDER BY s.created_at DESC LIMIT 6
+            `)
+        ]);
+        res.render('dashboard', {
+            currentPage: '/',
+            kpi: {
+                sevkiyat: sevkiyatlar.rows[0].n,
+                arac:     araclar.rows[0].n,
+                sofor:    soforler.rows[0].n,
+                musteri:  musteriler.rows[0].n
+            },
+            sonSevkiyat: sonSevkiyat.rows
+        });
+    } catch (err) {
+        console.error('Dashboard hatası:', err);
+        res.render('dashboard', {
+            currentPage: '/',
+            kpi: { sevkiyat: 0, arac: 0, sofor: 0, musteri: 0 },
+            sonSevkiyat: []
+        });
+    }
 });
 
 // 404

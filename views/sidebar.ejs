@@ -4,8 +4,15 @@
         if (exact) return cp === prefix;
         return cp === prefix || cp.startsWith(prefix + '/');
     }
+    const initials = (user && user.name)
+        ? user.name.split(' ').map(w => w.charAt(0).toUpperCase()).join('').slice(0, 2)
+        : '?';
 %>
-<aside class="sb">
+<aside class="sb" id="sidebar">
+    <button type="button" class="sb-collapse-btn" id="sbCollapseBtn" aria-label="Daralt/Genişlet">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+
     <div class="sb-head">
         <div class="sb-logo"><i class="fas fa-truck-fast"></i></div>
         <div>
@@ -46,9 +53,7 @@
 
     <div class="sb-foot">
         <div class="sb-user">
-            <div class="sb-avatar">
-                <%= (user && user.name) ? user.name.split(' ').map(w => w.charAt(0).toUpperCase()).join('').slice(0,2) : '?' %>
-            </div>
+            <div class="sb-avatar"><%= initials %></div>
             <div style="min-width:0;flex:1;">
                 <div class="sb-uname"><%= user ? user.name : '' %></div>
                 <div class="sb-uemail"><%= user ? user.email : '' %></div>
@@ -58,26 +63,25 @@
     </div>
 </aside>
 
-<style>
-    .sb { width: 240px; background: #0f172a; color: #e2e8f0; display: flex; flex-direction: column; height: 100vh; position: fixed; top: 0; left: 0; overflow-y: auto; border-right: 1px solid #1e293b; }
-    .sb-head { padding: 20px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #1e293b; }
-    .sb-logo { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #0284c7, #0369a1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(2,132,199,0.25); }
-    .sb-logo i { color: #fff; font-size: 16px; }
-    .sb-brand { font-size: 14px; font-weight: 800; color: #f1f5f9; letter-spacing: -0.2px; }
-    .sb-sub { font-size: 10.5px; color: #64748b; font-weight: 500; }
-    .sb-nav { flex: 1; padding: 12px 12px 16px; }
-    .sb-section { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.6px; padding: 16px 12px 8px; }
-    .sb-link { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 9px; font-size: 12.5px; font-weight: 600; color: #cbd5e1; text-decoration: none; transition: all 0.15s; margin-bottom: 2px; }
-    .sb-link i { width: 16px; text-align: center; font-size: 13px; color: #64748b; }
-    .sb-link:hover { background: #1e293b; color: #f1f5f9; }
-    .sb-link:hover i { color: #cbd5e1; }
-    .sb-link.active { background: linear-gradient(90deg, #0c4a6e, #075985); color: #fff; }
-    .sb-link.active i { color: #38bdf8; }
-    .sb-foot { padding: 14px; border-top: 1px solid #1e293b; }
-    .sb-user { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: #1e293b; }
-    .sb-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #0369a1); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
-    .sb-uname { font-size: 12px; font-weight: 700; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sb-uemail { font-size: 10.5px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sb-logout { width: 30px; height: 30px; border-radius: 8px; background: transparent; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 12px; text-decoration: none; transition: all 0.15s; flex-shrink: 0; }
-    .sb-logout:hover { background: #b91c1c; color: #fff; }
-</style>
+<script>
+(function () {
+    const sb = document.getElementById('sidebar');
+    const btn = document.getElementById('sbCollapseBtn');
+    if (!sb || !btn) return;
+
+    const KEY = 'sb-collapsed';
+    const main = document.querySelector('.app-main');
+
+    function apply(collapsed) {
+        sb.classList.toggle('collapsed', collapsed);
+        if (main) main.classList.toggle('sb-collapsed', collapsed);
+    }
+    apply(localStorage.getItem(KEY) === '1');
+
+    btn.addEventListener('click', () => {
+        const next = !sb.classList.contains('collapsed');
+        apply(next);
+        localStorage.setItem(KEY, next ? '1' : '0');
+    });
+})();
+</script>

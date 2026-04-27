@@ -4,61 +4,228 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anasayfa — Kuzeyden Lojistik</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #f8fafc; }
-    </style>
 </head>
-<body class="flex min-h-screen overflow-hidden">
+<body>
 
 <%- include('sidebar', { currentPage: '/' }) %>
 
-<main class="flex-1 ml-60 overflow-y-auto" style="max-height:100vh;">
-    <div style="padding: 36px 40px; background: #fff; border-bottom: 1px solid #e2e8f0;">
-        <h1 style="font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
-            Hoş geldin, <%= user ? user.name.split(' ')[0] : '' %> 👋
-        </h1>
-        <p style="font-size: 13px; color: #64748b; margin-top: 6px;">Bugün operasyona genel bir bakış.</p>
-    </div>
+<%
+    const k = (typeof kpi !== 'undefined') ? kpi : { sevkiyat:0, arac:0, sofor:0, musteri:0 };
+    const lastShipments = (typeof sonSevkiyat !== 'undefined') ? sonSevkiyat : [];
+    const firstName = user ? (user.name || '').split(' ')[0] : '';
+    const initials = (user && user.name)
+        ? user.name.split(' ').map(w => w.charAt(0).toUpperCase()).join('').slice(0, 2)
+        : '?';
+    const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-    <div style="padding: 28px 40px 40px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
-            <a href="/tms" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
-                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #0284c7, #0369a1); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
-                    <i class="fas fa-chart-line" style="color: #fff; font-size: 18px;"></i>
-                </div>
-                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">TMS Dashboard</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Sevkiyat, araç ve şoför özeti</div>
-            </a>
+    function durumBadge(d) {
+        const map = {
+            'Planlandı': 'b-sky',
+            'Yolda':     'b-amber',
+            'Teslim':    'b-emer',
+            'İptal':     'b-rose'
+        };
+        return map[d] || 'b-slate';
+    }
+    function fmtTutar(n) {
+        if (n === null || n === undefined) return '—';
+        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(n);
+    }
+    function fmtTarih(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
+    }
+%>
 
-            <a href="/tms/sevkiyatlar" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
-                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
-                    <i class="fas fa-route" style="color: #fff; font-size: 18px;"></i>
-                </div>
-                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Sevkiyatlar</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Aktif ve geçmiş seferler</div>
-            </a>
+<main class="app-main" id="appMain">
 
-            <a href="/tms/araclar" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
-                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
-                    <i class="fas fa-truck" style="color: #fff; font-size: 18px;"></i>
-                </div>
-                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Araç Filosu</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Plaka, kapasite, durum</div>
-            </a>
-
-            <a href="/kullanicilar" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; text-decoration: none; color: inherit; transition: all 0.15s;" onmouseover="this.style.borderColor='#0284c7';this.style.boxShadow='0 4px 16px rgba(2,132,199,0.1)';" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='none';">
-                <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
-                    <i class="fas fa-users" style="color: #fff; font-size: 18px;"></i>
-                </div>
-                <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Kullanıcılar</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Yönetim paneli</div>
-            </a>
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar-search">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" placeholder="Sevkiyat kodu, plaka, müşteri ara…">
         </div>
+        <div class="topbar-spacer"></div>
+
+        <button class="icon-btn" title="Yardım"><i class="fas fa-circle-question"></i></button>
+        <button class="icon-btn" title="Bildirimler">
+            <i class="fas fa-bell"></i>
+            <span class="dot"></span>
+        </button>
+
+        <div class="topbar-user">
+            <div class="av"><%= initials %></div>
+            <div class="nm"><%= firstName %></div>
+            <i class="arrow fas fa-chevron-down"></i>
+        </div>
+    </header>
+
+    <!-- Sayfa içeriği -->
+    <div class="page">
+
+        <!-- Hoş geldin -->
+        <div class="page-header">
+            <div>
+                <div class="page-eyebrow"><%= today %></div>
+                <h1 class="page-title">Hoş geldin, <%= firstName %> 👋</h1>
+                <p class="page-desc">Bugünkü operasyona hızlı bir bakış. Önemli hareketleri buradan takip edebilirsin.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a href="/tms/sevkiyatlar" class="btn ghost">
+                    <i class="fas fa-list"></i> Sevkiyatlar
+                </a>
+                <a href="/tms/sevkiyatlar?yeni=1" class="btn primary">
+                    <i class="fas fa-plus"></i> Yeni Sevkiyat
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI'lar -->
+        <div class="grid-cards" style="margin-bottom: 24px;">
+            <div class="kpi">
+                <div class="kpi-icon ic-sky"><i class="fas fa-route"></i></div>
+                <div class="kpi-val"><%= k.sevkiyat %></div>
+                <div class="kpi-lbl">Toplam Sevkiyat</div>
+                <div class="kpi-sub">Tüm zamanlar</div>
+                <span class="kpi-trend flat"><i class="fas fa-minus"></i> Yeni veri yok</span>
+            </div>
+            <div class="kpi">
+                <div class="kpi-icon ic-emerald"><i class="fas fa-truck"></i></div>
+                <div class="kpi-val"><%= k.arac %></div>
+                <div class="kpi-lbl">Filodaki Araç</div>
+                <div class="kpi-sub">Aktif kayıt</div>
+                <span class="kpi-trend flat"><i class="fas fa-minus"></i> Değişim yok</span>
+            </div>
+            <div class="kpi">
+                <div class="kpi-icon ic-amber"><i class="fas fa-id-card"></i></div>
+                <div class="kpi-val"><%= k.sofor %></div>
+                <div class="kpi-lbl">Şoför</div>
+                <div class="kpi-sub">Aktif kayıt</div>
+                <span class="kpi-trend flat"><i class="fas fa-minus"></i> Değişim yok</span>
+            </div>
+            <div class="kpi">
+                <div class="kpi-icon ic-violet"><i class="fas fa-handshake"></i></div>
+                <div class="kpi-val"><%= k.musteri %></div>
+                <div class="kpi-lbl">Müşteri</div>
+                <div class="kpi-sub">Toplam müşteri</div>
+                <span class="kpi-trend flat"><i class="fas fa-minus"></i> Değişim yok</span>
+            </div>
+        </div>
+
+        <!-- 2 sütun: son sevkiyatlar + hızlı işlemler -->
+        <div class="grid-2">
+
+            <!-- Son sevkiyatlar -->
+            <div class="card-x">
+                <div class="card-head">
+                    <div class="card-title">Son Sevkiyatlar</div>
+                    <a href="/tms/sevkiyatlar" style="font-size:12px; font-weight:700; color: var(--p-600);">
+                        Tümünü gör <i class="fas fa-arrow-right" style="font-size:10px;"></i>
+                    </a>
+                </div>
+                <% if (lastShipments.length === 0) { %>
+                    <div class="empty">
+                        <div class="icon"><i class="fas fa-inbox"></i></div>
+                        <div class="t">Henüz sevkiyat yok</div>
+                        <div class="d">İlk sevkiyatı oluşturduğunda burada listelenecek.</div>
+                        <a href="/tms/sevkiyatlar?yeni=1" class="btn primary" style="margin-top:14px;">
+                            <i class="fas fa-plus"></i> Yeni Sevkiyat
+                        </a>
+                    </div>
+                <% } else { %>
+                    <table class="tbl">
+                        <thead>
+                            <tr>
+                                <th>Kod</th>
+                                <th>Müşteri</th>
+                                <th>Plaka</th>
+                                <th>Yükleme</th>
+                                <th>Durum</th>
+                                <th style="text-align:right;">Tutar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% lastShipments.forEach(s => { %>
+                                <tr>
+                                    <td style="font-weight:700; color: var(--s-900);"><%= s.kod || '#' + s.id %></td>
+                                    <td><%= s.musteri_ad || '—' %></td>
+                                    <td><%= s.plaka || '—' %></td>
+                                    <td><%= fmtTarih(s.yukleme_tarihi) %></td>
+                                    <td><span class="badge <%= durumBadge(s.durum) %>"><span class="dot"></span><%= s.durum || '—' %></span></td>
+                                    <td style="text-align:right; font-weight:700; color: var(--s-900);"><%= fmtTutar(s.tutar) %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } %>
+            </div>
+
+            <!-- Hızlı işlemler -->
+            <div>
+                <div class="card-x" style="margin-bottom:20px;">
+                    <div class="card-head">
+                        <div class="card-title">Hızlı İşlemler</div>
+                    </div>
+                    <div class="card-body" style="display:flex; flex-direction:column; gap:10px; padding:16px;">
+                        <a href="/tms/sevkiyatlar?yeni=1" class="qa">
+                            <div class="qa-icon ic-sky"><i class="fas fa-route"></i></div>
+                            <div>
+                                <div class="qa-title">Yeni Sevkiyat</div>
+                                <div class="qa-desc">Yeni bir sefer oluştur</div>
+                            </div>
+                            <i class="fas fa-arrow-right qa-arrow"></i>
+                        </a>
+                        <a href="/tms/araclar?yeni=1" class="qa">
+                            <div class="qa-icon ic-emerald"><i class="fas fa-truck"></i></div>
+                            <div>
+                                <div class="qa-title">Araç Ekle</div>
+                                <div class="qa-desc">Filoya yeni araç</div>
+                            </div>
+                            <i class="fas fa-arrow-right qa-arrow"></i>
+                        </a>
+                        <a href="/tms/soforler?yeni=1" class="qa">
+                            <div class="qa-icon ic-amber"><i class="fas fa-id-card"></i></div>
+                            <div>
+                                <div class="qa-title">Şoför Ekle</div>
+                                <div class="qa-desc">Yeni şoför kaydı</div>
+                            </div>
+                            <i class="fas fa-arrow-right qa-arrow"></i>
+                        </a>
+                        <a href="/tms/musteriler?yeni=1" class="qa">
+                            <div class="qa-icon ic-violet"><i class="fas fa-handshake"></i></div>
+                            <div>
+                                <div class="qa-title">Müşteri Ekle</div>
+                                <div class="qa-desc">Yeni müşteri kartı</div>
+                            </div>
+                            <i class="fas fa-arrow-right qa-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- İpucu kartı -->
+                <div class="card-x" style="background: linear-gradient(135deg, var(--p-600), var(--p-800)); border:0; color:#fff; overflow:hidden; position:relative;">
+                    <div style="padding: 22px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <i class="fas fa-lightbulb" style="color:#fde68a;"></i>
+                            <div style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#bae6fd;">İpucu</div>
+                        </div>
+                        <div style="font-size:15px; font-weight:800; line-height:1.4;">
+                            Sevkiyatlarını müşteri ve araçla eşleştirerek bu paneli canlandır.
+                        </div>
+                        <div style="font-size:12.5px; color:#cbd5e1; margin-top:8px; line-height:1.6;">
+                            Önce <strong>Müşteri</strong>, <strong>Şoför</strong> ve <strong>Araç</strong> kayıtlarını oluştur. Sonra ilk <strong>Sevkiyatı</strong> ekle — KPI'lar otomatik dolar.
+                        </div>
+                    </div>
+                    <div style="position:absolute; right:-18px; bottom:-18px; opacity:0.18; font-size:120px; line-height:1;">
+                        <i class="fas fa-truck-fast"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </main>
 
